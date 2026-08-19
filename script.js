@@ -19,36 +19,60 @@ if (typeof window.supabase !== 'undefined') {
     let currentChannel = null;
 
     // ============================================================
-    // 3. QUESTION BANK
+    // 3. SMART QUESTION BANK (Generates checklists based on answers)
     // ============================================================
     const questionBank = {
         birthday: {
             questions: [
                 { label: "What age?", type: "text", key: "age" },
                 { label: "Theme (e.g., Dinosaurs)?", type: "text", key: "theme" },
-                { label: "How many guests?", type: "number", key: "guests" }
+                { label: "Will there be guests?", type: "select", key: "has_guests", options: ["Yes", "No"] }
             ],
-            defaultChecklist: ["Order Cake", "Buy Decorations", "Plan Games", "Goodie Bags"]
+            generateChecklist: (details) => {
+                let items = ["Order Cake", "Buy Decorations"];
+                if (details.has_guests === "Yes") {
+                    items.push("Plan Games", "Goodie Bags");
+                }
+                return items;
+            }
         },
         anniversary: {
             questions: [
                 { label: "How many years?", type: "number", key: "years" },
-                { label: "Romantic or Adventurous?", type: "text", key: "vibe" }
+                { label: "Is this a dinner out?", type: "select", key: "is_dinner", options: ["Yes", "No"] }
             ],
-            defaultChecklist: ["Book Restaurant", "Buy Flowers", "Arrange Sitter", "Write Card"]
+            generateChecklist: (details) => {
+                let items = ["Buy Flowers", "Write Card"];
+                if (details.is_dinner === "Yes") {
+                    items.push("Book Restaurant");
+                } else {
+                    items.push("Cook Fancy Meal");
+                }
+                return items;
+            }
         },
         dinner: {
             questions: [
-                { label: "Cuisine preference?", type: "text", key: "cuisine" },
-                { label: "Budget per person?", type: "number", key: "budget" }
+                { label: "Is this a Braai (BBQ) or Formal Dinner?", type: "select", key: "style", options: ["Braai", "Formal"] },
+                { label: "How many people?", type: "number", key: "guests" }
             ],
-            defaultChecklist: ["Send Invites", "Plan Menu", "Buy Drinks", "Set Table"]
+            generateChecklist: (details) => {
+                let items = ["Send Invites"];
+                if (details.style === "Braai") {
+                    items.push("Buy Meat", "Check Charcoal/Gas", "Buy Salad Rolls");
+                } else {
+                    items.push("Plan Menu", "Buy Drinks", "Set Table");
+                }
+                return items;
+            }
         },
         other: {
             questions: [
                 { label: "What is the event name/type?", type: "text", key: "custom_type" }
             ],
-            defaultChecklist: ["Set a Date", "Send Invitations", "Plan Food/Menu", "Arrange Venue"]
+            generateChecklist: () => {
+                return ["Set a Date", "Send Invitations", "Plan Food/Menu"];
+            }
         }
     };
 
@@ -189,13 +213,18 @@ if (typeof window.supabase !== 'undefined') {
         const data = questionBank[type];
         let html = '';
         data.questions.forEach(q => {
-            html += `<label>${q.label}</label><input type="${q.type}" id="q_${q.key}" placeholder="Enter details...">`;
+            if (q.type === "select") {
+                let optionsHtml = q.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                html += `<label>${q.label}</label><select id="q_${q.key}" class="full-width-input">${optionsHtml}</select>`;
+            } else {
+                html += `<label>${q.label}</label><input type="${q.type}" id="q_${q.key}" class="full-width-input" placeholder="Enter details...">`;
+            }
         });
         questionArea.innerHTML = html;
     });
 
     // ============================================================
-    // 7. CREATE NEW EVENT
+    // 7. CREATE NEW EVENT (With new Smart Checklist logic)
     // ============================================================
     document.getElementById('createEventBtn').addEventListener('click', async () => {
         const type = document.getElementById('eventType').value;
@@ -216,7 +245,9 @@ if (typeof window.supabase !== 'undefined') {
 
         if (error) { alert('Error creating event: ' + error.message); return; }
 
-        const tasksToInsert = data.defaultChecklist.map(task => ({
+        // Generate tasks dynamically using the new generateChecklist function
+        const checklistItems = data.generateChecklist(details);
+        const tasksToInsert = checklistItems.map(task => ({
             event_id: newEvent.id,
             family_id: currentFamilyId,
             task_name: task,
@@ -231,7 +262,7 @@ if (typeof window.supabase !== 'undefined') {
     });
 
     // ============================================================
-    // 8. LOAD TASKS
+    // 8. LOAD TASKS (With Dynamic Family Member Dropdowns)
     // ============================================================
     async function loadTasks(eventId) {
         if (currentChannel) {
@@ -255,39 +286,56 @@ if (typeof window.supabase !== 'undefined') {
 
     async function renderChecklist() {
         if (!currentEventId) return;
-        const { data: tasks, error } = await supabase
+
+        // 1. Fetch tasks
+        const { data: tasks, error: taskError } = await supabase
             .from('tasks')
             .select('*')
             .eq('event_id', currentEventId)
             .order('created_at', { ascending: true });
 
-        if (error) return;
+        if (taskError) return;
+
+        // 2. Fetch all family members for the dropdown
+        const { data: members, error: memberError } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('family_id', currentFamilyId);
+
+        if (memberError) return;
+
         const container = document.getElementById('checklist');
         container.innerHTML = '';
 
         if (!tasks || tasks.length === 0) {
-            container.innerHTML = '<p style="color:#94a3b8;">No tasks yet. Add one below!</p>';
+            container.innerHTML = '<p class="empty-state">No tasks yet. Add one below!</p>';
             return;
         }
 
+        // 3. Build the dynamic dropdown options
+        let optionsHtml = '<option value="">Unassigned</option>';
+        members.forEach(m => {
+            if (m.display_name) {
+                optionsHtml += `<option value="${m.display_name}">${m.display_name}</option>`;
+            }
+        });
+
+        // 4. Render tasks with the new dynamic dropdown
         tasks.forEach(task => {
             const div = document.createElement('div');
-            div.style.cssText = 'display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #eee; flex-wrap:wrap;';
+            div.className = 'task-item';
             div.innerHTML = `
                 <input type="checkbox" ${task.is_done ? 'checked' : ''} data-id="${task.id}">
-                <span style="flex:2; min-width:100px; ${task.is_done ? 'text-decoration:line-through; color:#94a3b8;' : ''}">${task.task_name}</span>
-                <select data-id="${task.id}" style="width:auto; padding:4px; font-size:12px; margin:0; flex:1; min-width:80px;">
-                    <option value="">Unassigned</option>
-                    <option value="Mom" ${task.assigned_to === 'Mom' ? 'selected' : ''}>Mom</option>
-                    <option value="Dad" ${task.assigned_to === 'Dad' ? 'selected' : ''}>Dad</option>
-                    <option value="Teen" ${task.assigned_to === 'Teen' ? 'selected' : ''}>Teen</option>
-                    <option value="Grandma" ${task.assigned_to === 'Grandma' ? 'selected' : ''}>Grandma</option>
+                <span style="${task.is_done ? 'text-decoration:line-through; color:#9ca3af;' : ''}">${task.task_name}</span>
+                <select data-id="${task.id}">
+                    ${optionsHtml}
                 </select>
-                <button style="width:auto; background:#ef4444; padding:4px 12px; margin:0; flex:0;" data-id="${task.id}">✕</button>
+                <button data-id="${task.id}">✕</button>
             `;
             container.appendChild(div);
         });
 
+        // 5. Add event listeners
         container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', async function() {
                 await supabase.from('tasks').update({ is_done: this.checked }).eq('id', this.dataset.id);
@@ -297,6 +345,8 @@ if (typeof window.supabase !== 'undefined') {
             sel.addEventListener('change', async function() {
                 await supabase.from('tasks').update({ assigned_to: this.value || null }).eq('id', this.dataset.id);
             });
+            // Auto-select the currently assigned user if they exist in the list
+            sel.value = tasks.find(t => t.id === sel.dataset.id)?.assigned_to || '';
         });
         container.querySelectorAll('button[data-id]').forEach(btn => {
             btn.addEventListener('click', async function() {
