@@ -5,70 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>FamilyOS</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="app">
-        <!-- ========== LOGIN SCREEN ========== -->
-        <div id="login-screen">
-            <h1>🏠 FamilyOS</h1>
-            <p style="color: #64748b;">Enter your family's invite code</p>
-            <input type="text" id="inviteCodeInput" placeholder="e.g. TEST123" value="TEST123">
-            <input type="text" id="displayNameInput" placeholder="Your name (e.g. Mom)">
-            <button id="loginBtn">Enter Family Hub</button>
-            <!-- ✅ THIS LINE WAS MISSING - FIXED! -->
-            <p id="loginError" style="color:red; font-size:14px; margin-top:10px;"></p>
+        <!-- LOGIN SCREEN -->
+        <div id="login-screen" class="centered-screen">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1>🏡 FamilyOS</h1>
+                    <p>Welcome home. Enter your family's invite code.</p>
+                </div>
+                <div class="login-form">
+                    <input type="text" id="inviteCodeInput" placeholder="Invite Code (e.g. TEST123)" value="TEST123">
+                    <input type="text" id="displayNameInput" placeholder="Your name">
+                    <button id="loginBtn">Enter the Hub</button>
+                    <p id="loginError" class="error-text"></p>
+                </div>
+            </div>
         </div>
 
-        <!-- ========== MAIN APP (Hidden until login) ========== -->
+        <!-- MAIN APP -->
         <div id="main-app" style="display: none;">
-            <!-- Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h1>🎉 FamilyOS</h1>
-                <button id="logoutBtn" style="width:auto; padding:8px 16px; background:#ef4444;">Logout</button>
-            </div>
-            <p id="welcomeUser" style="margin-top:-10px; color:#64748b;"></p>
-            
-            <!-- ====== STEP 1: SELECT OR CREATE EVENT ====== -->
-            <div id="event-selector-area">
-                <label for="eventSelector">📂 Switch between existing events:</label>
-                <select id="eventSelector">
-                    <option value="">-- Load an existing event --</option>
-                </select>
-                <hr style="margin: 16px 0;">
-                <p style="font-weight:bold; margin-bottom:4px;">🆕 Or create a new event:</p>
-                <select id="eventType">
-                    <option value="">-- Select Type --</option>
-                    <option value="birthday">🎂 Birthday</option>
-                    <option value="anniversary">💕 Anniversary</option>
-                    <option value="dinner">🍽️ Dinner Party</option>
-                    <option value="other">📝 Other (Custom)</option>
-                </select>
-            </div>
-
-            <!-- ====== STEP 2: Dynamic Questions (Hidden by default) ====== -->
-            <div id="step-2" style="display: none; margin-top: 16px;">
-                <div id="question-area"></div>
-                <button id="createEventBtn">✅ Create Event & Checklist</button>
-            </div>
-
-            <!-- ====== STEP 3: The Checklist & Tools (Hidden by default) ====== -->
-            <div id="results" style="display: none; margin-top: 20px;">
-                <h3>📋 Checklist <span id="currentEventTitle" style="font-size:14px; font-weight:normal; color:#64748b;"></span></h3>
-                <div id="checklist"></div>
-                
-                <div style="display: flex; gap: 8px; margin-top: 10px;">
-                    <input type="text" id="newTaskInput" placeholder="Add new task...">
-                    <button id="addTaskBtn" style="width:auto; padding:0 20px;">+</button>
+            <header>
+                <div class="header-left">
+                    <h2>🏡 FamilyOS</h2>
+                    <span id="welcomeUser" class="welcome-text"></span>
                 </div>
-                
-                <hr>
-                <button id="searchBtn">🔍 Get AI Search Suggestions</button>
-                <div id="searchResults" style="margin-top:10px;"></div>
-            </div>
+                <button id="logoutBtn" class="btn-outline">Logout</button>
+            </header>
+
+            <main>
+                <!-- EVENT SELECTOR -->
+                <section class="card">
+                    <h3>📂 Switch Event</h3>
+                    <select id="eventSelector" class="full-width-input">
+                        <option value="">-- Load an existing event --</option>
+                    </select>
+                </section>
+
+                <!-- CREATE EVENT WIZARD -->
+                <section class="card">
+                    <h3>🆕 Plan New Event</h3>
+                    <select id="eventType" class="full-width-input">
+                        <option value="">-- Choose an event type --</option>
+                        <option value="birthday">🎂 Birthday</option>
+                        <option value="anniversary">💕 Anniversary</option>
+                        <option value="dinner">🍽️ Dinner / Braai</option>
+                        <option value="other">📝 Custom Event</option>
+                    </select>
+                    
+                    <div id="step-2" style="display: none; margin-top: 15px;">
+                        <div id="question-area" class="question-grid"></div>
+                        <button id="createEventBtn" class="btn-primary" style="margin-top: 15px;">✅ Create Event</button>
+                    </div>
+                </section>
+
+                <!-- CHECKLIST DASHBOARD -->
+                <div id="results" style="display: none;">
+                    <section class="card">
+                        <div class="flex-header">
+                            <h3>📋 Checklist <span id="currentEventTitle" class="subtitle"></span></h3>
+                        </div>
+                        <div id="checklist" class="task-list"></div>
+                        <div class="task-input-group">
+                            <input type="text" id="newTaskInput" placeholder="Add a new task...">
+                            <button id="addTaskBtn" class="btn-icon">+</button>
+                        </div>
+                    </section>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
