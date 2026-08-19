@@ -1,0 +1,46 @@
+```css
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f8fafc;
+    margin: 0;
+    padding: 20px;
+    color: #0f172a;
+}
+#app {
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    padding: 24px;
+    border-radius: 24px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+h1 { font-size: 24px; margin-top: 0; }
+select, input, button {
+    width: 100%;
+    padding: 14px;
+    margin: 8px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+button {
+    background: #3b82f6;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+button:active { background: #2563eb; }
+#checklist div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+#checklist input[type="checkbox"] { width: 24px; margin: 0; }
+.task-text { flex: 1; }
+.done { text-decoration: line-through; color: #94a3b8; }
+select { width: auto; padding: 4px 8px; margin: 0; }
+```

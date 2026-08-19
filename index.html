@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>FamilyOS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- ========== LOGIN SCREEN ========== -->
+        <div id="login-screen">
+            <h1>🏠 FamilyOS</h1>
+            <p style="color: #64748b;">Enter your family's invite code</p>
+            <input type="text" id="inviteCodeInput" placeholder="e.g. TEST123" value="TEST123">
+            <input type="text" id="displayNameInput" placeholder="Your name (e.g. Mom)">
+            <button id="loginBtn">Enter Family Hub</button>
+            <!-- ✅ THIS LINE WAS MISSING - FIXED! -->
+            <p id="loginError" style="color:red; font-size:14px; margin-top:10px;"></p>
+        </div>
+
+        <!-- ========== MAIN APP (Hidden until login) ========== -->
+        <div id="main-app" style="display: none;">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>🎉 FamilyOS</h1>
+                <button id="logoutBtn" style="width:auto; padding:8px 16px; background:#ef4444;">Logout</button>
+            </div>
+            <p id="welcomeUser" style="margin-top:-10px; color:#64748b;"></p>
+            
+            <!-- ====== STEP 1: SELECT OR CREATE EVENT ====== -->
+            <div id="event-selector-area">
+                <label for="eventSelector">📂 Switch between existing events:</label>
+                <select id="eventSelector">
+                    <option value="">-- Load an existing event --</option>
+                </select>
+                <hr style="margin: 16px 0;">
+                <p style="font-weight:bold; margin-bottom:4px;">🆕 Or create a new event:</p>
+                <select id="eventType">
+                    <option value="">-- Select Type --</option>
+                    <option value="birthday">🎂 Birthday</option>
+                    <option value="anniversary">💕 Anniversary</option>
+                    <option value="dinner">🍽️ Dinner Party</option>
+                    <option value="other">📝 Other (Custom)</option>
+                </select>
+            </div>
+
+            <!-- ====== STEP 2: Dynamic Questions (Hidden by default) ====== -->
+            <div id="step-2" style="display: none; margin-top: 16px;">
+                <div id="question-area"></div>
+                <button id="createEventBtn">✅ Create Event & Checklist</button>
+            </div>
+
+            <!-- ====== STEP 3: The Checklist & Tools (Hidden by default) ====== -->
+            <div id="results" style="display: none; margin-top: 20px;">
+                <h3>📋 Checklist <span id="currentEventTitle" style="font-size:14px; font-weight:normal; color:#64748b;"></span></h3>
+                <div id="checklist"></div>
+                
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <input type="text" id="newTaskInput" placeholder="Add new task...">
+                    <button id="addTaskBtn" style="width:auto; padding:0 20px;">+</button>
+                </div>
+                
+                <hr>
+                <button id="searchBtn">🔍 Get AI Search Suggestions</button>
+                <div id="searchResults" style="margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
